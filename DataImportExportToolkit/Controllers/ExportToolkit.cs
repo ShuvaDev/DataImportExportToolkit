@@ -73,5 +73,29 @@ namespace DataImportExportToolkit.Controllers
             return File(memoryStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "test.xlsx");
         }
 
+        public async Task UploadDataFromExcelFile(IFormFile formFile)
+        {
+            MemoryStream memoryStream = new MemoryStream();
+            await formFile.CopyToAsync(memoryStream);
+
+            using (ExcelPackage excelPackage = new ExcelPackage(memoryStream))
+            {
+                ExcelWorksheet workSheet = excelPackage.Workbook.Worksheets["Countries"];
+
+                int rowCount = workSheet.Dimension.Rows;
+
+                for (int row = 2; row <= rowCount; row++)
+                {
+                    string? cellValue = workSheet.Cells[row, 1].Value.ToString();
+
+                    if(!string.IsNullOrEmpty(cellValue))
+                    {
+                        Console.WriteLine(cellValue);
+                        // add cellValue to db
+                    }
+                }
+            }
+        }
+
     }
 }
