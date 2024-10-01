@@ -1,6 +1,7 @@
 ﻿using CsvHelper;
 using DataImportExportToolkit.Models;
 using Microsoft.AspNetCore.Mvc;
+using OfficeOpenXml;
 using Rotativa.AspNetCore;
 using System.Globalization;
 
@@ -45,6 +46,32 @@ namespace DataImportExportToolkit.Controllers
             return File(memoryStream, "text/csv", "test.csv");
         }
 
+        public async Task<IActionResult> GenerateExcel()
+        {
+            MemoryStream memoryStream = new MemoryStream();
+            using(ExcelPackage excelPackage = new ExcelPackage(memoryStream))
+            {
+                ExcelWorksheet workSheet = excelPackage.Workbook.Worksheets.Add("Sheet1");
+                workSheet.Cells["A1"].Value = "Person Name";
+                workSheet.Cells[2, 1].Value = "Shuva Dev";
+                workSheet.Cells["B1"].Value = "Age";
+                workSheet.Cells[2, 2].Value = "23";
+
+                workSheet.Cells["A1:B2"].AutoFitColumns();
+
+                using(ExcelRange headerCells = workSheet.Cells["A1:B1"])
+                {
+                    headerCells.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                    headerCells.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+                    headerCells.Style.Font.Bold = true;
+                }
+
+                await excelPackage.SaveAsAsync(memoryStream);
+
+            }
+            memoryStream.Position = 0;
+            return File(memoryStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "test.xlsx");
+        }
 
     }
 }
